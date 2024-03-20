@@ -1,0 +1,104 @@
+From ed7de2666516d6b2f6ad42ea890c78cdf0b9926f Mon Sep 17 00:00:00 2001
+From: benjamimFG <ben.freitasg@gmail.com>
+Date: Wed, 20 Mar 2024 15:28:56 -0300
+Subject: [PATCH] add -x and -y switches to offset dmenu
+
+---
+ dmenu.1 | 19 +++++++++++++++++++
+ dmenu.c | 15 +++++++++++----
+ 2 files changed, 30 insertions(+), 4 deletions(-)
+
+diff --git a/dmenu.1 b/dmenu.1
+index 323f93c..d0a225b 100644
+--- a/dmenu.1
++++ b/dmenu.1
+@@ -8,6 +8,10 @@ dmenu \- dynamic menu
+ .IR lines ]
+ .RB [ \-m
+ .IR monitor ]
++.RB [ \-x
++.IR xoffset ]
++.RB [ \-y
++.IR yoffset ]
+ .RB [ \-p
+ .IR prompt ]
+ .RB [ \-fn
+@@ -54,6 +58,21 @@ dmenu lists items vertically, with the given number of lines.
+ dmenu is displayed on the monitor number supplied. Monitor numbers are starting
+ from 0.
+ .TP
++.BI \-x " xoffset"
++dmenu is placed at this offset measured from the left side of the monitor.
++Can be negative.
++If option
++.B \-m
++is present, the measurement will use the given monitor.
++.TP
++.BI \-y " yoffset"
++dmenu is placed at this offset measured from the top of the monitor.  If the
++.B \-b
++option is used, the offset is measured from the bottom.  Can be negative.
++If option
++.B \-m
++is present, the measurement will use the given monitor.
++.TP
+ .BI \-p " prompt"
+ defines the prompt to be displayed to the left of the input field.
+ .TP
+diff --git a/dmenu.c b/dmenu.c
+index 40f93e0..9700317 100644
+--- a/dmenu.c
++++ b/dmenu.c
+@@ -36,6 +36,8 @@ struct item {
+ static char text[BUFSIZ] = "";
+ static char *embed;
+ static int bh, mw, mh;
++static int dmx = 0; /* put dmenu at this x offset */
++static int dmy = 0; /* put dmenu at this y offset (measured from the bottom if topbar is 0) */
+ static int inputw = 0, promptw;
+ static int lrpad; /* sum of left and right padding */
+ static size_t cursor;
+@@ -662,8 +664,8 @@ setup(void)
+ 				if (INTERSECT(x, y, 1, 1, info[i]) != 0)
+ 					break;
+ 
+-		x = info[i].x_org;
+-		y = info[i].y_org + (topbar ? 0 : info[i].height - mh);
++		x = info[i].x_org + dmx;
++		y = info[i].y_org + (topbar ? dmy : info[i].height - mh - dmy);
+ 		mw = info[i].width;
+ 		XFree(info);
+ 	} else
+@@ -672,8 +674,8 @@ setup(void)
+ 		if (!XGetWindowAttributes(dpy, parentwin, &wa))
+ 			die("could not get embedding window attributes: 0x%lx",
+ 			    parentwin);
+-		x = 0;
+-		y = topbar ? 0 : wa.height - mh;
++		x = dmx;
++		y = topbar ? dmy : wa.height - mh - dmy;
+ 		mw = wa.width;
+ 	}
+ 	promptw = (prompt && *prompt) ? TEXTW(prompt) - lrpad / 4 : 0;
+@@ -716,6 +718,7 @@ static void
+ usage(void)
+ {
+ 	die("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
++      "             [-x offset] [-y offset]\n"
+ 	    "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]");
+ }
+ 
+@@ -742,6 +745,10 @@ main(int argc, char *argv[])
+ 		/* these options take one argument */
+ 		else if (!strcmp(argv[i], "-l"))   /* number of lines in vertical list */
+ 			lines = atoi(argv[++i]);
++		else if (!strcmp(argv[i], "-x"))
++      dmx = atoi(argv[++i]);
++		else if (!strcmp(argv[i], "-y"))
++      dmy = atoi(argv[++i]);
+ 		else if (!strcmp(argv[i], "-m"))
+ 			mon = atoi(argv[++i]);
+ 		else if (!strcmp(argv[i], "-p"))   /* adds prompt to left of input field */
+-- 
+2.44.0
+
