@@ -1,24 +1,16 @@
-dmenu - dynamic menu
-====================
-dmenu is an efficient dynamic menu for X.
+[dmenu](https://tools.suckless.org/dmenu/) with some patches I use.
 
+Updated to VERSION: 5.3
 
-Requirements
-------------
-In order to build dmenu you need the Xlib header files.
+# Patches  
 
+- XY: add -x and -y options to configure X and Y positions of dmenu. (Adapted from [XYW Patch](https://tools.suckless.org/dmenu/patches/xyw/dmenu-xyw-5.0.diff))  
+- Lineheight: add -h option to set minimum dmenu height ([Line Height Patch](https://tools.suckless.org/dmenu/patches/line-height/))  
 
-Installation
-------------
-Edit config.mk to match your local setup (dmenu is installed into
-the /usr/local namespace by default).
+The patches in the 'patches' directory are supposed to be applied in alphabetical order on top of a clean 5.3 dmenu codebase.  
+Alternatively the main branch already has all patches applied.  
 
-Afterwards enter the following command to build and install dmenu
-(if necessary as root):
-
-    make clean install
-
-
-Running dmenu
--------------
-See the man page for details.
+# Install
+```
+make && sudo make install
+```
